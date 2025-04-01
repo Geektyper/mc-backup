@@ -6,8 +6,8 @@ import time
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-API_ID = 123456
-API_HASH = "your_api_hash"
+API_ID = 13691707
+API_HASH = "2a31b117896c5c7da27c74025aa602b8"
 BOT_TOKEN = "your_bot_token"
 CHAT_ID = -1001234567890
 WORLD_FOLDER = "/home/mcserver/minecraft_bedrock/worlds/my folder"

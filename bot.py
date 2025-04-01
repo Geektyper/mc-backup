@@ -41,13 +41,16 @@ async def do_backup(message: Message):
         stderr=asyncio.subprocess.PIPE
     )
 
+    last_update_time = time.time()
+    
     while True:
         line = await proc.stdout.readline()
         if not line:
             break
 
         progress_text = line.decode().strip()
-        if progress_text:
+        if progress_text and time.time() - last_update_time >= 5:
+            last_update_time = time.time()
             try:
                 await upload_message.edit_text(f"Uploading: {progress_text}")
             except Exception:
@@ -70,6 +73,7 @@ async def start(_, message: Message):
     await message.reply_text("I'm a Minecraft backup bot! Use /backup to trigger a backup manually.")
 
 async def main():
+    print("Bot started.")
     await app.start()
     await idle()
 

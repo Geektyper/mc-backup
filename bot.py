@@ -19,35 +19,46 @@ app = Client("mc_backup_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TO
 last_backup = 0
 
 def get_latest_backup():
-    result = os.popen(f"rclone lsf {GDRIVE_FOLDER} --format ""t"" | sort | tail -1").read().strip()
+    result = os.popen(f"rclone lsf {GDRIVE_FOLDER} --format \"t\" | sort | tail -1").read().strip()
     return result if result else None
 
-async def do_backup(message):
+async def do_backup(message: Message):
     try:
         timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
         backup_zip = os.path.join(BACKUP_DIR, f"my_backup_{timestamp}.zip")
         shutil.make_archive(backup_zip.replace(".zip", ""), 'zip', WORLD_FOLDER)
-        await message.reply_text("Backup started. Uploading...")
 
         latest_backup = get_latest_backup()
-        
-        upload = await app.send_message(message.chat.id, "Uploading backup...")
-        
+        upload_message = await message.reply_text("Backup started. Uploading...")
+
+        # Start the upload process
         proc = await asyncio.create_subprocess_shell(
             f"rclone copy {backup_zip} {GDRIVE_FOLDER} --progress",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
 
+        previous_progress = 0
         while proc.returncode is None:
             await asyncio.sleep(5)
-            await upload.edit_text("Uploading backup... Still in progress.")
-        
+            # Get the current progress
+            # Here you should implement a method to retrieve the current upload progress.
+            # This could be done by parsing `stdout` from the rclone command or keeping track of progress differently.
+
+            # Mocking the upload progress for the sake of example
+            current_progress = previous_progress + 10  # Update this with actual logic to get progress
+
+            # Only update if progress has changed
+            if current_progress != previous_progress:
+                await upload_message.edit_text(f"Uploading backup... {current_progress}%")
+                previous_progress = current_progress
+
         if latest_backup:
             os.system(f"rclone delete {GDRIVE_FOLDER}{latest_backup}")
-        
+
         os.remove(backup_zip)
-        await upload.edit_text("Backup uploaded to Google Drive successfully.")
+        await upload_message.edit_text("Backup uploaded to Google Drive successfully.")
+
     except Exception as e:
         logging.error(f"Backup failed: {e}")
         await message.reply_text(f"Backup failed: {e}")

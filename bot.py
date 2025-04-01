@@ -24,7 +24,7 @@ async def do_backup():
     try:
         if os.path.exists(BACKUP_COPY):
             shutil.rmtree(BACKUP_COPY)
-        shutil.copytree(WORLD_FOLDER, BACKUP_COPY)
+        shutil.copytree(WORLD_FOLDER, BACKUP_COPY, symlinks=True, ignore_dangling_symlinks=True)
         timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
         backup_zip_path = os.path.join(BACKUP_DIR, f"my_folder_{timestamp}.zip")
         shutil.make_archive(backup_zip_path.replace(".zip", ""), 'zip', BACKUP_COPY)

@@ -39,7 +39,7 @@ async def auto_backup():
         await do_backup()
         await asyncio.sleep(BACKUP_INTERVAL)
 
-@app.on_message(filters.command("backup") & filters.chat(CHAT_ID))
+@app.on_message(filters.command("backup"))
 async def manual(_, message: Message):
     global last_backup
     if time.time() - last_backup < MANUAL_GAP:

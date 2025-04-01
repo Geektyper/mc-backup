@@ -2,7 +2,6 @@ import os
 import zipfile
 import asyncio
 import time
-import logging
 from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 
@@ -35,16 +34,26 @@ async def do_backup(message: Message):
                 zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), WORLD_FOLDER))
 
     upload_message = await message.reply_text("Backup started. Uploading...")
+
     proc = await asyncio.create_subprocess_shell(
-        f"rclone copy {backup_zip_path} {GDRIVE_FOLDER}",
+        f"rclone copy {backup_zip_path} {GDRIVE_FOLDER} --progress",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
 
-    while proc.returncode is None:
-        await asyncio.sleep(5)
-        await upload_message.edit_text("Uploading backup... Still in progress.")
+    while True:
+        line = await proc.stdout.readline()
+        if not line:
+            break
 
+        progress_text = line.decode().strip()
+        if progress_text:
+            try:
+                await upload_message.edit_text(f"Uploading: {progress_text}")
+            except Exception:
+                pass  
+
+    await proc.wait()
     delete_old_backup()
     os.remove(backup_zip_path)
     await upload_message.edit_text("Backup uploaded to Google Drive successfully.")

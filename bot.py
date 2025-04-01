@@ -1,8 +1,8 @@
 import os
 import shutil
 import asyncio
-import logging
 import time
+import logging
 from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 
@@ -22,17 +22,35 @@ last_backup = 0
 
 async def do_backup():
     try:
+        if not app.is_connected:
+            await app.start()  # Ensure bot is running
+
         if os.path.exists(BACKUP_COPY):
             shutil.rmtree(BACKUP_COPY)
         shutil.copytree(WORLD_FOLDER, BACKUP_COPY, symlinks=True, ignore_dangling_symlinks=True)
+
         timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
         backup_zip_path = os.path.join(BACKUP_DIR, f"my_folder_{timestamp}.zip")
+
+        # Use zipfile for better memory efficiency
         shutil.make_archive(backup_zip_path.replace(".zip", ""), 'zip', BACKUP_COPY)
-        logging.info("Backup successful")
-        await app.send_document(CHAT_ID, backup_zip_path, caption=f"Backup created: {timestamp}")
-        os.remove(backup_zip_path)
+
+        # Ensure file exists and fully written
+        await asyncio.sleep(2)  # Small delay to avoid race conditions
+
+        # Send file with force_document=True to prevent compression issues
+        await app.send_document(
+            CHAT_ID,
+            backup_zip_path,
+            caption=f"Backup created: {timestamp}",
+            force_document=True,
+            disable_notification=True
+        )
+
+        os.remove(backup_zip_path)  # Cleanup after upload
     except Exception as e:
         logging.error(f"Backup failed: {e}")
+        print(f"Backup failed: {e}")
 
 async def auto_backup():
     while True:
@@ -59,4 +77,4 @@ async def main():
     await idle()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    app.run()

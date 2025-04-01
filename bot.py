@@ -8,8 +8,8 @@ from pyrogram.types import Message
 
 API_ID = 13691707
 API_HASH = "2a31b117896c5c7da27c74025aa602b8"
-BOT_TOKEN = "your_bot_token"
-CHAT_ID = -1001234567890
+BOT_TOKEN = "7544752676:AAHG240y6RkGM5uXpWrF2GA9woCnU9hlOd8"
+CHAT_ID = -1002533275162
 WORLD_FOLDER = "/home/mcserver/minecraft_bedrock/worlds/my folder"
 BACKUP_COPY = "/home/mcserver/minecraft_bedrock/backups/my folder"
 BACKUP_ZIP = "/home/mcserver/minecraft_bedrock/backups/my folder.zip"

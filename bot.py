@@ -18,9 +18,10 @@ app = Client("mc_backup_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TO
 last_backup = 0
 
 def delete_old_backup():
-    latest_backup = os.popen(f"rclone lsf {GDRIVE_FOLDER} --format \"t\" | sort | tail -1").read().strip()
+    latest_backup = os.popen(f"rclone lsf {GDRIVE_FOLDER} | sort | tail -1").read().strip()
     if latest_backup:
-        os.system(f"rclone delete {GDRIVE_FOLDER}{latest_backup}")
+        full_path = f"{GDRIVE_FOLDER}{latest_backup}"
+        os.system(f"rclone deletefile \"{full_path}\"")
 
 async def do_backup(message: Message):
     global last_backup

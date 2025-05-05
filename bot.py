@@ -18,9 +18,9 @@ app = Client("mc_backup_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TO
 last_backup = 0
 
 def delete_old_backup():
-    latest_backup = os.popen(f"rclone lsf {GDRIVE_FOLDER} | sort | tail -1").read().strip()
-    if latest_backup:
-        full_path = f"{GDRIVE_FOLDER}{latest_backup}"
+    oldest_backup = os.popen(f"rclone lsf {GDRIVE_FOLDER} | sort | head -1").read().strip()
+    if oldest_backup:
+        full_path = f"{GDRIVE_FOLDER}{oldest_backup}"
         os.system(f"rclone deletefile \"{full_path}\" --drive-use-trash=false")
         print(f"Deleted old backup permanently: {full_path}")
 

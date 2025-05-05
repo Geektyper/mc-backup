@@ -22,6 +22,7 @@ def delete_old_backup():
     if latest_backup:
         full_path = f"{GDRIVE_FOLDER}{latest_backup}"
         os.system(f"rclone deletefile \"{full_path}\"")
+        print(f"Deleted old backup: {full_path}")
 
 async def do_backup(message: Message):
     global last_backup
@@ -33,23 +34,26 @@ async def do_backup(message: Message):
     with zipfile.ZipFile(backup_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(WORLD_FOLDER):
             for file in files:
-                zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), WORLD_FOLDER))
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, WORLD_FOLDER)
+                try:
+                    zipf.write(file_path, arcname)
+                except FileNotFoundError:
+                    print(f"Skipped missing file: {file_path}")
 
     upload_message = await message.reply_text("Backup started. Uploading...")
 
     proc = await asyncio.create_subprocess_shell(
-        f"rclone copy {backup_zip_path} {GDRIVE_FOLDER} --progress",
+        f"rclone copy \"{backup_zip_path}\" \"{GDRIVE_FOLDER}\" --progress",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
 
     last_update_time = time.time()
-
     while True:
         line = await proc.stdout.readline()
         if not line:
             break
-
         progress_text = line.decode().strip()
         if progress_text and time.time() - last_update_time >= 5:
             last_update_time = time.time()
@@ -62,7 +66,6 @@ async def do_backup(message: Message):
     delete_old_backup()
     os.remove(backup_zip_path)
     await upload_message.edit_text("Backup uploaded to Google Drive successfully.")
-
 
 @app.on_message(filters.command("backup"))
 async def manual(_, message: Message):

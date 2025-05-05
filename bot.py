@@ -62,7 +62,6 @@ async def do_backup(message: Message):
     os.remove(backup_zip_path)
     await upload_message.edit_text("Backup uploaded to Google Drive successfully.")
 
-app = Client("backup_bot")
 
 @app.on_message(filters.command("backup"))
 async def manual(_, message: Message):

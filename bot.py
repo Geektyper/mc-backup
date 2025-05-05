@@ -26,6 +26,7 @@ async def do_backup(message: Message):
     global last_backup
     last_backup = time.time()
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+    os.makedirs(BACKUP_DIR, exist_ok=True)
     backup_zip_path = os.path.join(BACKUP_DIR, f"my_backup_{timestamp}.zip")
 
     with zipfile.ZipFile(backup_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -42,7 +43,7 @@ async def do_backup(message: Message):
     )
 
     last_update_time = time.time()
-    
+
     while True:
         line = await proc.stdout.readline()
         if not line:
@@ -54,12 +55,14 @@ async def do_backup(message: Message):
             try:
                 await upload_message.edit_text(f"Uploading: {progress_text}")
             except Exception:
-                pass  
+                pass
 
     await proc.wait()
     delete_old_backup()
     os.remove(backup_zip_path)
     await upload_message.edit_text("Backup uploaded to Google Drive successfully.")
+
+app = Client("backup_bot")
 
 @app.on_message(filters.command("backup"))
 async def manual(_, message: Message):

@@ -21,8 +21,8 @@ def delete_old_backup():
     latest_backup = os.popen(f"rclone lsf {GDRIVE_FOLDER} | sort | tail -1").read().strip()
     if latest_backup:
         full_path = f"{GDRIVE_FOLDER}{latest_backup}"
-        os.system(f"rclone deletefile \"{full_path}\"")
-        print(f"Deleted old backup: {full_path}")
+        os.system(f"rclone deletefile \"{full_path}\" --drive-use-trash=false")
+        print(f"Deleted old backup permanently: {full_path}")
 
 async def do_backup(message: Message):
     global last_backup

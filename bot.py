@@ -31,6 +31,8 @@ async def do_backup(message: Message):
     os.makedirs(BACKUP_DIR, exist_ok=True)
     backup_zip_path = os.path.join(BACKUP_DIR, f"my_backup_{timestamp}.zip")
 
+    status_msg = await message.reply_text("Backup started. Creating zip...")
+
     with zipfile.ZipFile(backup_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(WORLD_FOLDER):
             for file in files:
@@ -41,7 +43,7 @@ async def do_backup(message: Message):
                 except FileNotFoundError:
                     print(f"Skipped missing file: {file_path}")
 
-    upload_message = await message.reply_text("Backup started. Uploading...")
+    await status_msg.edit_text("Zip created. Uploading to Google Drive...")
 
     proc = await asyncio.create_subprocess_shell(
         f"rclone copy \"{backup_zip_path}\" \"{GDRIVE_FOLDER}\" --progress",
@@ -58,14 +60,14 @@ async def do_backup(message: Message):
         if progress_text and time.time() - last_update_time >= 5:
             last_update_time = time.time()
             try:
-                await upload_message.edit_text(f"Uploading: {progress_text}")
+                await status_msg.edit_text(f"Uploading: {progress_text}")
             except Exception:
                 pass
 
     await proc.wait()
     delete_old_backup()
     os.remove(backup_zip_path)
-    await upload_message.edit_text("Backup uploaded to Google Drive successfully.")
+    await status_msg.edit_text("Backup uploaded to Google Drive successfully.")
 
 @app.on_message(filters.command("backup"))
 async def manual(_, message: Message):
